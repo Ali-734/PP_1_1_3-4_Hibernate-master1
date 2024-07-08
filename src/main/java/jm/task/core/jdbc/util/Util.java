@@ -1,4 +1,3 @@
-
 package jm.task.core.jdbc.util;
 
 import org.hibernate.Session;
@@ -16,30 +15,27 @@ public class Util {
     private final static String PASSWORD = "Alishka12345";
     private final static Logger LOGGER = Logger.getLogger(Util.class.getName());
 
-    public static Connection getConnection() {
-        Connection connection;
+    private static SessionFactory sessionFactory;
+
+    static {
         try {
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            LOGGER.info("Connection established");
-        } catch (SQLException e) {
-            LOGGER.severe("Error establishing connection: " + e.getMessage());
-            throw new RuntimeException(e);
+            Configuration configuration = new Configuration().addAnnotatedClass(User.class);
+            configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+            configuration.setProperty("hibernate.connection.driver_class", "com.mysql.jdbc.Driver");
+            configuration.setProperty("hibernate.connection.url", URL);
+            configuration.setProperty("hibernate.connection.username", USERNAME);
+            configuration.setProperty("hibernate.connection.password", PASSWORD);
+            configuration.setProperty("hibernate.show_sql", "true");
+            configuration.setProperty("hibernate.hbm2ddl.auto", "update");
+            sessionFactory = configuration.buildSessionFactory();
+            LOGGER.info("SessionFactory created");
+        } catch (Exception e) {
+            LOGGER.severe("Error creating SessionFactory: " + e.getMessage());
+            throw new ExceptionInInitializerError(e);
         }
-        return connection;
     }
 
-    public static Session getConfiguration() {
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
-        configuration.setProperty("hibernate.connection.driver_class", "com.mysql.jdbc.Driver");
-        configuration.setProperty("hibernate.connection.url", URL);
-        configuration.setProperty("hibernate.connection.username", USERNAME);
-        configuration.setProperty("hibernate.connection.password", PASSWORD);
-        configuration.setProperty("hibernate.show_sql", "true");
-        configuration.setProperty("hibernate.hbm2ddl.auto", "update");
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Session session = sessionFactory.getCurrentSession();
-        LOGGER.info("Session established");
-        return session;
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 }
